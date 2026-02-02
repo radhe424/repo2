@@ -1,15 +1,20 @@
-This is docker file
-# create a directory to work in
-mkdir example
-cd example
+FROM python:3.9
 
-# create an example file
-touch somefile.txt
+WORKDIR /app/backend
 
-# build an image using the current directory as context
-# and a Dockerfile passed through stdin
-docker build -t myimage:latest -f- . <<EOF
-FROM busybox
-COPY somefile.txt ./
-RUN cat /somefile.txt
-EOF
+COPY requirements.txt /app/backend
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y gcc default-libmysqlclient-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# Install app dependencies
+RUN pip install mysqlclient
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /app/backend
+
+EXPOSE 8000
+#RUN python manage.py migrate
+#RUN python manage.py makemigrations
